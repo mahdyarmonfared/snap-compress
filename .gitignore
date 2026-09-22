@@ -11,3 +11,5 @@ coverage/
 dist/
 test-output/
 test-temp/
+demo-images/
+demo-output/
