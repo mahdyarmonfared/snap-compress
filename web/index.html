@@ -15,7 +15,17 @@
 
   <header class="header">
     <div class="logo-container">
-      <span class="logo-icon">⚡</span>
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="snapBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="url(#snapBolt)" stroke="#38bdf8" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
       <div>
         <h1 class="logo-title">SnapCompress</h1>
         <p class="logo-subtitle">Browser Image Compressor & WebP/AVIF Converter</p>
@@ -156,11 +166,33 @@
       </div>
     </section>
 
+    <!-- Quick Demo Toolbar -->
+    <div class="toolbar">
+      <div class="demo-buttons">
+        <span class="toolbar-label">Quick Preview:</span>
+        <button type="button" class="btn btn-outline" id="loadDemoBtn">⚡ Load Sample Demo Images</button>
+      </div>
+      <button type="button" class="clear-btn" id="toolbarClearBtn">Clear</button>
+    </div>
+
     <!-- Drop Zone -->
     <section id="dropZone" class="drop-zone">
       <input type="file" id="fileInput" multiple accept="image/*" class="file-input">
       <div class="drop-content">
-        <div class="drop-icon">📁</div>
+        <div class="drop-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#10b981"/>
+              </linearGradient>
+            </defs>
+            <rect width="18" height="18" x="3" y="3" rx="4" stroke="url(#dropGrad)"/>
+            <circle cx="8.5" cy="8.5" r="1.5" fill="#38bdf8"/>
+            <path d="M21 15l-5-5L5 21" stroke="url(#dropGrad)"/>
+            <path d="M12 7v5m-2-2l2-2 2 2" stroke="#38bdf8" stroke-width="2"/>
+          </svg>
+        </div>
         <h2 class="drop-title">Drag & drop your images here</h2>
         <p class="drop-desc">or <span class="highlight">browse files</span> from your computer</p>
         <p class="drop-hints">Supports PNG, JPG, JPEG, WEBP, AVIF, GIF, SVG • Multiple files allowed</p>

@@ -379,9 +379,88 @@ downloadAllBtn.addEventListener('click', async () => {
 /**
  * Clear all processed images
  */
-clearAllBtn.addEventListener('click', () => {
+function clearAll() {
   processedImages.forEach(img => URL.revokeObjectURL(img.objectUrl));
   processedImages = [];
   renderResults();
   fileInput.value = '';
-});
+}
+
+clearAllBtn.addEventListener('click', clearAll);
+
+const toolbarClearBtn = document.getElementById('toolbarClearBtn');
+if (toolbarClearBtn) {
+  toolbarClearBtn.addEventListener('click', clearAll);
+}
+
+// Quick Demo Generator
+const loadDemoBtn = document.getElementById('loadDemoBtn');
+if (loadDemoBtn) {
+  loadDemoBtn.addEventListener('click', async () => {
+    loadDemoBtn.textContent = '⏳ Generating Demo...';
+    loadDemoBtn.disabled = true;
+
+    try {
+      // 1. Generate realistic Landscape canvas (1920x1080)
+      const c1 = document.createElement('canvas');
+      c1.width = 1920;
+      c1.height = 1080;
+      const ctx1 = c1.getContext('2d');
+      const grad1 = ctx1.createLinearGradient(0, 0, 1920, 1080);
+      grad1.addColorStop(0, '#0a0f1d');
+      grad1.addColorStop(0.5, '#0284c7');
+      grad1.addColorStop(1, '#6366f1');
+      ctx1.fillStyle = grad1;
+      ctx1.fillRect(0, 0, 1920, 1080);
+
+      // Add visual glow circles
+      ctx1.fillStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx1.beginPath();
+      ctx1.arc(960, 540, 320, 0, Math.PI * 2);
+      ctx1.fill();
+
+      ctx1.font = 'bold 72px -apple-system, sans-serif';
+      ctx1.fillStyle = '#ffffff';
+      ctx1.textAlign = 'center';
+      ctx1.fillText('SnapCompress 4K Sample', 960, 510);
+      ctx1.font = '32px -apple-system, sans-serif';
+      ctx1.fillStyle = '#94a3b8';
+      ctx1.fillText('Uncompressed High-Res Asset • 1920×1080', 960, 580);
+
+      const blob1 = await new Promise(r => c1.toBlob(r, 'image/jpeg', 0.95));
+      const file1 = new File([blob1], 'landscape_wallpaper_4k.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+
+      // 2. Generate Crisp Product Vector Canvas (800x800)
+      const c2 = document.createElement('canvas');
+      c2.width = 800;
+      c2.height = 800;
+      const ctx2 = c2.getContext('2d');
+      ctx2.fillStyle = '#0f172a';
+      ctx2.fillRect(0, 0, 800, 800);
+
+      const grad2 = ctx2.createLinearGradient(120, 120, 680, 680);
+      grad2.addColorStop(0, '#38bdf8');
+      grad2.addColorStop(1, '#8b5cf6');
+      ctx2.fillStyle = grad2;
+      ctx2.beginPath();
+      ctx2.arc(400, 400, 220, 0, Math.PI * 2);
+      ctx2.fill();
+
+      ctx2.font = 'bold 54px -apple-system, sans-serif';
+      ctx2.fillStyle = '#ffffff';
+      ctx2.textAlign = 'center';
+      ctx2.fillText('Vector Icon', 400, 415);
+
+      const blob2 = await new Promise(r => c2.toBlob(r, 'image/png'));
+      const file2 = new File([blob2], 'brand_badge_icon.png', { type: 'image/png', lastModified: Date.now() });
+
+      await handleFiles([file1, file2]);
+    } catch (err) {
+      console.error('Demo generation error:', err);
+    } finally {
+      loadDemoBtn.textContent = '⚡ Load Sample Demo Images';
+      loadDemoBtn.disabled = false;
+    }
+  });
+}
+
