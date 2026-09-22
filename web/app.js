@@ -17,6 +17,20 @@ const totalSavingsBadge = document.getElementById('totalSavingsBadge');
 const downloadAllBtn = document.getElementById('downloadAllBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
 
+// Mega Menu elements
+const formatDropdown = document.getElementById('formatDropdown');
+const formatTrigger = document.getElementById('formatTrigger');
+const triggerIcon = document.getElementById('triggerIcon');
+const triggerName = document.getElementById('triggerName');
+const triggerBadge = document.getElementById('triggerBadge');
+const megaCards = document.querySelectorAll('.mega-card');
+
+// Stepper elements
+const dimMinusBtn = document.getElementById('dimMinusBtn');
+const dimPlusBtn = document.getElementById('dimPlusBtn');
+const dimPresetLabel = document.getElementById('dimPresetLabel');
+const dimPresetBtns = document.querySelectorAll('.dim-preset-btn');
+
 // State
 let processedImages = [];
 
@@ -30,6 +44,95 @@ function formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
+
+/**
+ * Mega Menu Format Selector Logic
+ */
+formatTrigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  formatDropdown.classList.toggle('open');
+});
+
+document.addEventListener('click', (e) => {
+  if (!formatDropdown.contains(e.target)) {
+    formatDropdown.classList.remove('open');
+  }
+});
+
+const FORMAT_CONFIGS = {
+  webp: { name: 'WebP', icon: '⚡', badgeText: 'Recommended', badgeClass: 'badge-recommended' },
+  avif: { name: 'AVIF', icon: '🚀', badgeText: 'Next-Gen', badgeClass: 'badge-nextgen' },
+  jpeg: { name: 'JPEG', icon: '📷', badgeText: 'Universal', badgeClass: 'badge-legacy' },
+  png: { name: 'PNG', icon: '💎', badgeText: 'Pixel-Crisp', badgeClass: 'badge-crisp' },
+};
+
+megaCards.forEach(card => {
+  card.addEventListener('click', () => {
+    const format = card.dataset.format;
+    formatSelect.value = format;
+
+    // Update trigger UI
+    const cfg = FORMAT_CONFIGS[format];
+    if (cfg) {
+      triggerIcon.textContent = cfg.icon;
+      triggerName.textContent = cfg.name;
+      triggerBadge.textContent = cfg.badgeText;
+      triggerBadge.className = `format-badge ${cfg.badgeClass}`;
+    }
+
+    // Update active card
+    megaCards.forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+
+    // Close menu
+    formatDropdown.classList.remove('open');
+  });
+});
+
+/**
+ * Custom Stepper & Dimension Presets Logic
+ */
+function updateDimensionUI(val) {
+  if (!val || val <= 0) {
+    maxSizeInput.value = '';
+    dimPresetLabel.textContent = 'Original';
+  } else {
+    maxSizeInput.value = val;
+    dimPresetLabel.textContent = `${val}px`;
+  }
+
+  // Update preset buttons active state
+  dimPresetBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.dim === (val ? String(val) : ''));
+  });
+}
+
+dimPlusBtn.addEventListener('click', () => {
+  const current = parseInt(maxSizeInput.value, 10);
+  const next = isNaN(current) ? 800 : Math.min(8000, current + 100);
+  updateDimensionUI(next);
+});
+
+dimMinusBtn.addEventListener('click', () => {
+  const current = parseInt(maxSizeInput.value, 10);
+  if (isNaN(current) || current <= 100) {
+    updateDimensionUI('');
+  } else {
+    updateDimensionUI(Math.max(100, current - 100));
+  }
+});
+
+maxSizeInput.addEventListener('input', (e) => {
+  const val = parseInt(e.target.value, 10);
+  updateDimensionUI(isNaN(val) ? '' : val);
+});
+
+dimPresetBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const dim = btn.dataset.dim;
+    updateDimensionUI(dim ? parseInt(dim, 10) : '');
+  });
+});
 
 /**
  * Update UI for Quality Slider

@@ -35,16 +35,90 @@
   <main class="container">
     <!-- Controls Bar -->
     <section class="controls-card">
+      <!-- Mega Menu Format Selector -->
       <div class="control-group">
-        <label for="formatSelect">Output Format</label>
-        <select id="formatSelect" class="styled-select">
-          <option value="webp" selected>WebP (Recommended)</option>
-          <option value="jpeg">JPEG</option>
-          <option value="png">PNG</option>
-          <option value="avif">AVIF (Modern)</option>
-        </select>
+        <label>Output Format</label>
+        <div class="mega-dropdown" id="formatDropdown">
+          <button type="button" class="mega-trigger" id="formatTrigger" aria-haspopup="true" aria-expanded="false">
+            <div class="selected-format-display">
+              <span class="format-icon" id="triggerIcon">⚡</span>
+              <div class="format-text">
+                <span class="format-name" id="triggerName">WebP</span>
+                <span class="format-badge badge-recommended" id="triggerBadge">Recommended</span>
+              </div>
+            </div>
+            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z"/>
+            </svg>
+          </button>
+          
+          <!-- Hidden input holding actual value for app logic -->
+          <input type="hidden" id="formatSelect" value="webp">
+
+          <!-- Dropdown Mega Menu Panel -->
+          <div class="mega-menu" id="formatMegaMenu">
+            <div class="mega-grid">
+              <!-- WebP -->
+              <div class="mega-card active" data-format="webp">
+                <div class="mega-card-header">
+                  <span class="mega-card-icon">⚡</span>
+                  <span class="mega-card-title">WebP</span>
+                  <span class="mega-badge badge-recommended">Recommended</span>
+                </div>
+                <p class="mega-card-desc">70–85% smaller files with exceptional clarity. Best web standard.</p>
+                <div class="mega-card-meta">
+                  <span>✨ 98% Browser Support</span>
+                  <span>⚖️ Ideal Balance</span>
+                </div>
+              </div>
+
+              <!-- AVIF -->
+              <div class="mega-card" data-format="avif">
+                <div class="mega-card-header">
+                  <span class="mega-card-icon">🚀</span>
+                  <span class="mega-card-title">AVIF</span>
+                  <span class="mega-badge badge-nextgen">Next-Gen</span>
+                </div>
+                <p class="mega-card-desc">Cutting-edge AV1 codec compression. Maximum bandwidth reduction.</p>
+                <div class="mega-card-meta">
+                  <span>📉 Up to 90% Savings</span>
+                  <span>🎨 High Color Depth</span>
+                </div>
+              </div>
+
+              <!-- JPEG -->
+              <div class="mega-card" data-format="jpeg">
+                <div class="mega-card-header">
+                  <span class="mega-card-icon">📷</span>
+                  <span class="mega-card-title">JPEG</span>
+                  <span class="mega-badge badge-legacy">Universal</span>
+                </div>
+                <p class="mega-card-desc">MozJPEG-optimized encoding for 100% compatibility across older devices.</p>
+                <div class="mega-card-meta">
+                  <span>🌐 100% Compatible</span>
+                  <span>⚡ Fast Decoding</span>
+                </div>
+              </div>
+
+              <!-- PNG -->
+              <div class="mega-card" data-format="png">
+                <div class="mega-card-header">
+                  <span class="mega-card-icon">💎</span>
+                  <span class="mega-card-title">PNG</span>
+                  <span class="mega-badge badge-crisp">Pixel-Crisp</span>
+                </div>
+                <p class="mega-card-desc">Quantized color palette for logos, sharp icons, and transparent graphics.</p>
+                <div class="mega-card-meta">
+                  <span>🛡️ Razor-Sharp</span>
+                  <span>🔲 Alpha Transparency</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
+      <!-- Quality Slider -->
       <div class="control-group quality-group">
         <div class="slider-header">
           <label for="qualityRange">Quality</label>
@@ -58,9 +132,27 @@
         </div>
       </div>
 
+      <!-- Custom Stepper for Max Dimension -->
       <div class="control-group">
-        <label for="maxSizeInput">Max Dimension (px)</label>
-        <input type="number" id="maxSizeInput" placeholder="e.g. 1920 (optional)" min="100" max="8000" class="styled-input">
+        <div class="slider-header">
+          <label for="maxSizeInput">Max Dimension</label>
+          <span id="dimPresetLabel" class="val-display-muted">Original</span>
+        </div>
+        <div class="custom-stepper">
+          <button type="button" id="dimMinusBtn" class="stepper-btn" title="Decrease dimension by 100px">−</button>
+          <div class="stepper-input-wrapper">
+            <input type="number" id="maxSizeInput" placeholder="Original Size" min="100" max="8000" step="100" class="stepper-input">
+            <span class="stepper-unit">px</span>
+          </div>
+          <button type="button" id="dimPlusBtn" class="stepper-btn" title="Increase dimension by 100px">+</button>
+        </div>
+        <div class="dimension-presets">
+          <button type="button" class="dim-preset-btn active" data-dim="">Orig</button>
+          <button type="button" class="dim-preset-btn" data-dim="800">800</button>
+          <button type="button" class="dim-preset-btn" data-dim="1200">1200</button>
+          <button type="button" class="dim-preset-btn" data-dim="1920">1080p</button>
+          <button type="button" class="dim-preset-btn" data-dim="2560">2K</button>
+        </div>
       </div>
     </section>
 
