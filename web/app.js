@@ -464,3 +464,13 @@ if (loadDemoBtn) {
   });
 }
 
+// Auto-trigger for URL query parameters (e.g. for previews and screenshots)
+const params = new URLSearchParams(window.location.search);
+if (params.has('demo')) {
+  setTimeout(() => loadDemoBtn?.click(), 150);
+}
+if (params.has('mega')) {
+  setTimeout(() => formatDropdown?.classList.add('open'), 200);
+}
+
+
