@@ -62,25 +62,31 @@ Large, unoptimized images slow down page loads, kill Google Core Web Vitals (LCP
 
 ## 🚀 Quick Start
 
-### 1. Run Instantly with `npx` (No Install Required)
+### Installation & Global Setup
 
 ```bash
-# Convert all images in the ./public folder to WebP
-npx snap-compress ./public --out ./dist
+# 1. Clone the repository
+git clone https://github.com/mahdyarmonfared/snap-compress.git
+cd snap-compress
+
+# 2. Install dependencies
+npm install
+
+# 3. Link globally (so you can use `snap-compress` anywhere in your terminal)
+npm link
 ```
 
-### 2. Global Installation
+### Running SnapCompress
 
 ```bash
-npm install -g snap-compress
+# Convert all images in ./public to WebP inside ./dist
+snap-compress ./public --out ./dist
+
+# Launch the visual web interface locally
+snap-compress --web
 ```
 
-### 3. Launch Interactive Web GUI
-
-```bash
-# Launch browser-based Web GUI locally
-npx snap-compress --web
-```
+> 💡 **Tip:** You can also run it directly inside the repo without linking using `node bin/snap-compress.js [options]`.
 
 ---
 
