@@ -2,7 +2,7 @@
 
 > **High-performance batch image compressor and WebP/AVIF converter CLI powered by Sharp with lossless tuning, smart resizing, and recursive directory traversal.**
 
-[![CI](https://github.com/mahdyarmonfared/snap-compress/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdyarmonfared/snap-compress/actions)
+[![CI](https://github.com/mahdyarmonfared/SnapCompress/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdyarmonfared/SnapCompress/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -193,7 +193,7 @@ console.log(`Found ${files.length} images.`);
 
 ## 🤝 Contributing
 
-Contributions, feature requests, and bug reports are welcome! Please check out the [Issues](https://github.com/mahdyarmonfared/snap-compress/issues) page or submit a pull request.
+Contributions, feature requests, and bug reports are welcome! Please check out the [Issues](https://github.com/mahdyarmonfared/SnapCompress/issues) page or submit a pull request.
 
 ---
 
