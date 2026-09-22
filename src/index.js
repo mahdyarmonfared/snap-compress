@@ -9,3 +9,5 @@ export {
   normalizeFormat,
   SUPPORTED_EXTENSIONS,
 } from './utils.js';
+export { startWebServer } from './server.js';
+

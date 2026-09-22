@@ -10,6 +10,7 @@ import {
   calculateBatchSummary,
   renderTerminalTable,
   renderSummaryCard,
+  startWebServer,
 } from '../src/index.js';
 
 const program = new Command();
@@ -18,7 +19,7 @@ program
   .name('snap-compress')
   .description('⚡ Ultra-fast batch image compressor and WebP/AVIF converter powered by Sharp')
   .version('1.0.0')
-  .argument('[target]', 'Image file or directory to compress', '.')
+  .argument('[target]', 'Image file or directory to compress (or "web" to launch GUI)', '.')
   .option('-o, --out <dir>', 'Output destination directory')
   .option('-f, --format <type>', 'Target format: webp, avif, jpeg, png, auto', 'webp')
   .option('-q, --quality <number>', 'Compression quality (1-100)', (v) => parseInt(v, 10), 80)
@@ -35,7 +36,8 @@ program
   .option('--no-skip-larger', 'Do not skip output if compressed size is larger')
   .option('-d, --dry-run', 'Simulate compression and calculate savings without writing files', false)
   .option('-j, --json', 'Output results in JSON format for automated pipelines', false)
-  .option('-s, --silent', 'Suppress table output and spinner', false);
+  .option('-s, --silent', 'Suppress table output and spinner', false)
+  .option('--web [port]', 'Launch browser Web GUI interface locally');
 
 program.parse(process.argv);
 
@@ -44,6 +46,14 @@ const [targetArg] = program.args;
 const target = targetArg || '.';
 
 async function run() {
+  if (options.web || target === 'web') {
+    const port = typeof options.web === 'string' || typeof options.web === 'number'
+      ? parseInt(options.web, 10)
+      : 3000;
+    await startWebServer({ port });
+    return;
+  }
+
   const overallStartTime = Date.now();
 
   if (options.quality < 1 || options.quality > 100) {

@@ -14,6 +14,7 @@ Large, unoptimized images slow down page loads, kill Google Core Web Vitals (LCP
 ## ✨ Key Features
 
 - 🚀 **Next-Gen Format Conversion**: Instant batch conversion from `PNG`, `JPEG`, `TIFF`, `GIF`, and `SVG` to modern `WebP` and `AVIF`.
+- 🌐 **Interactive Web GUI & Live Demo**: Launch a browser interface with drag-and-drop, real-time quality slider, and batch ZIP export (`snap-compress --web`).
 - 🗜️ **Lossy & Lossless Modes**: Fine-tune quality targets (`--quality 1-100`) or enforce pixel-perfect `--lossless` compression.
 - 📐 **Smart Dimension Constraints**: Resize `--width`, `--height`, or bounding `--max-size` while strictly maintaining aspect ratios and preventing unwanted upscaling.
 - 📂 **Recursive Directory Discovery**: Traverses deep asset trees while automatically skipping `node_modules`, build artifacts, and hidden directories.
@@ -72,6 +73,13 @@ npx snap-compress ./public --out ./dist
 
 ```bash
 npm install -g snap-compress
+```
+
+### 3. Launch Interactive Web GUI
+
+```bash
+# Launch browser-based Web GUI locally
+npx snap-compress --web
 ```
 
 ---
