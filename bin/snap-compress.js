@@ -49,7 +49,7 @@ async function run() {
   if (options.web || target === 'web') {
     const port = typeof options.web === 'string' || typeof options.web === 'number'
       ? parseInt(options.web, 10)
-      : 3000;
+      : 3005;
     await startWebServer({ port });
     return;
   }

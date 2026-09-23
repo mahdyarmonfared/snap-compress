@@ -82,7 +82,7 @@ npm link
 # Convert all images in ./public to WebP inside ./dist
 snap-compress ./public --out ./dist
 
-# Launch the visual web interface locally
+# Launch the visual web interface locally (default: http://localhost:3005)
 snap-compress --web
 ```
 
@@ -146,6 +146,7 @@ snap-compress ./public --dry-run --json > compression-report.json
 | `-d, --dry-run` | Compute metrics and estimate savings without disk writes | `false` |
 | `-j, --json` | Output machine-readable JSON for CI integration | `false` |
 | `-s, --silent` | Suppress spinner and colored summary tables | `false` |
+| `--web [port]` | Launch browser Web GUI interface locally | `3005` |
 
 ---
 

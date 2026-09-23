@@ -24,11 +24,11 @@ const MIME_TYPES = {
 /**
  * Start the built-in SnapCompress Web UI server.
  * @param {object} [options={}]
- * @param {number} [options.port=3000] - Server listening port
+ * @param {number} [options.port=3005] - Server listening port
  * @returns {Promise<http.Server>}
  */
 export function startWebServer(options = {}) {
-  const port = options.port || 3000;
+  const port = options.port || 3005;
 
   const server = http.createServer(async (req, res) => {
     try {
