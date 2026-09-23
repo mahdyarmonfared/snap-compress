@@ -550,7 +550,7 @@ downloadAllBtn.addEventListener('click', async () => {
   if (processedImages.length === 0) return;
 
   const originalText = downloadAllBtn.textContent;
-  downloadAllBtn.textContent = '⏳ Creating ZIP...';
+  downloadAllBtn.textContent = '⏳ Creating ZIP…';
   downloadAllBtn.disabled = true;
 
   try {
