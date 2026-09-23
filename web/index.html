@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SnapCompress — Web Image Optimizer & WebP/AVIF Converter</title>
   <meta name="description" content="Fast, private, client-side batch image compressor and WebP/AVIF converter. Zero server uploads.">
   <link rel="stylesheet" href="style.css">
@@ -221,6 +221,31 @@
       </div>
     </section>
   </main>
+
+  <!-- Image Lightbox Preview Modal -->
+  <div class="modal-overlay hidden" id="previewModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="modal-icon">🔍</span>
+          <div>
+            <h2 class="modal-title" id="modalFilename">Image Preview</h2>
+            <p class="modal-subtitle" id="modalDimensions">0 × 0 px</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="closeModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-preview-wrapper">
+        <img id="modalPreviewImg" src="" alt="High-res preview" class="modal-preview-img">
+      </div>
+      <div class="modal-footer">
+        <span class="modal-savings-text" id="modalSavingsText">Saved 0%</span>
+        <a id="modalDownloadBtn" href="#" download="" class="btn btn-primary">
+          ⬇ Download Image
+        </a>
+      </div>
+    </div>
+  </div>
 
   <!-- Summary Footer -->
   <footer class="footer">

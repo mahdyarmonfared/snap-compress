@@ -19,7 +19,7 @@ program
   .name('snap-compress')
   .description('⚡ Ultra-fast batch image compressor and WebP/AVIF converter powered by Sharp')
   .version('1.0.0')
-  .argument('[target]', 'Image file or directory to compress (or "web" to launch GUI)', '.')
+  .argument('[args...]', 'Image file or directory to compress (or "web [port]" to launch GUI)')
   .option('-o, --out <dir>', 'Output destination directory')
   .option('-f, --format <type>', 'Target format: webp, avif, jpeg, png, auto', 'webp')
   .option('-q, --quality <number>', 'Compression quality (1-100)', (v) => parseInt(v, 10), 80)
@@ -42,14 +42,17 @@ program
 program.parse(process.argv);
 
 const options = program.opts();
-const [targetArg] = program.args;
-const target = targetArg || '.';
+const rawArgs = program.args;
+const target = rawArgs[0] || '.';
 
 async function run() {
   if (options.web || target === 'web') {
-    const port = typeof options.web === 'string' || typeof options.web === 'number'
-      ? parseInt(options.web, 10)
-      : 3005;
+    let port = 3005;
+    if (typeof options.web === 'string' || typeof options.web === 'number') {
+      port = parseInt(options.web, 10);
+    } else if (target === 'web' && rawArgs[1] && /^\d+$/.test(rawArgs[1])) {
+      port = parseInt(rawArgs[1], 10);
+    }
     await startWebServer({ port });
     return;
   }

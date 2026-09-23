@@ -31,6 +31,15 @@ const dimPlusBtn = document.getElementById('dimPlusBtn');
 const dimPresetLabel = document.getElementById('dimPresetLabel');
 const dimPresetBtns = document.querySelectorAll('.dim-preset-btn');
 
+// Modal Elements
+const previewModal = document.getElementById('previewModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const modalFilename = document.getElementById('modalFilename');
+const modalDimensions = document.getElementById('modalDimensions');
+const modalPreviewImg = document.getElementById('modalPreviewImg');
+const modalSavingsText = document.getElementById('modalSavingsText');
+const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+
 // State
 let processedImages = [];
 
@@ -321,11 +330,15 @@ function renderResults() {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.innerHTML = `
-      <div class="card-preview-container">
+      <div class="card-preview-container" data-idx="${idx}" title="Click to inspect quality">
         <img src="${img.objectUrl}" alt="${img.name}" class="card-preview-img">
+        <span class="card-zoom-hint">🔍 Zoom</span>
       </div>
       <div class="card-info">
-        <div class="card-filename" title="${img.name}">${img.outputName}</div>
+        <div class="card-filename-row">
+          <span class="card-filename" title="${img.name}">${img.outputName}</span>
+          <span class="card-dims-badge">${img.width}×${img.height}</span>
+        </div>
         <div class="card-metrics">
           <span>${formatBytes(img.originalBytes)} ➔ <strong>${formatBytes(img.compressedBytes)}</strong></span>
           <span class="card-savings-tag">-${img.percentSaved}%</span>
@@ -338,12 +351,51 @@ function renderResults() {
     cardsGrid.appendChild(card);
   });
 
+  // Attach lightbox preview clicks
+  cardsGrid.querySelectorAll('.card-preview-container').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      if (processedImages[idx]) {
+        openPreviewModal(processedImages[idx]);
+      }
+    });
+  });
+
   const totalSaved = Math.max(0, totalOrig - totalComp);
   const totalPercent = totalOrig > 0 ? ((totalSaved / totalOrig) * 100).toFixed(1) : 0;
 
   fileCount.textContent = processedImages.length;
   totalSavingsBadge.textContent = `-${totalPercent}% Saved (${formatBytes(totalSaved)} Total)`;
 }
+
+/**
+ * Open Image Lightbox Preview Modal
+ */
+function openPreviewModal(img) {
+  modalFilename.textContent = img.outputName;
+  modalDimensions.textContent = `${img.width} × ${img.height} px • ${formatBytes(img.compressedBytes)} (${img.outputFormat.toUpperCase()})`;
+  modalPreviewImg.src = img.objectUrl;
+  modalSavingsText.textContent = `Saved ${img.percentSaved}% (${formatBytes(img.savedBytes)})`;
+  modalDownloadBtn.href = img.objectUrl;
+  modalDownloadBtn.download = img.outputName;
+  previewModal.classList.remove('hidden');
+}
+
+closeModalBtn.addEventListener('click', () => {
+  previewModal.classList.add('hidden');
+});
+
+previewModal.addEventListener('click', (e) => {
+  if (e.target === previewModal) {
+    previewModal.classList.add('hidden');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !previewModal.classList.contains('hidden')) {
+    previewModal.classList.add('hidden');
+  }
+});
 
 /**
  * Download all compressed images as a ZIP

@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +18,7 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
+  '.avif': 'image/avif',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
 };
@@ -33,6 +35,118 @@ export function startWebServer(options = {}) {
   const server = http.createServer(async (req, res) => {
     try {
       const pathname = req.url.split('?')[0];
+
+      // API Endpoint: GET /api/info
+      if (req.method === 'GET' && pathname === '/api/info') {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          name: 'snap-compress',
+          version: '1.0.0',
+          engine: 'Sharp (libvips)',
+          port,
+          supportedFormats: ['webp', 'avif', 'jpeg', 'png'],
+          status: 'online',
+        }));
+        return;
+      }
+
+      // API Endpoint: POST /api/compress
+      if (req.method === 'POST' && pathname === '/api/compress') {
+        const chunks = [];
+        req.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+        req.on('end', async () => {
+          try {
+            const buffer = Buffer.concat(chunks);
+            if (buffer.length === 0) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Empty payload' }));
+              return;
+            }
+
+            let inputBuffer;
+            let format = 'webp';
+            let quality = 80;
+            let width = null;
+            let height = null;
+            let maxSize = null;
+
+            const contentType = req.headers['content-type'] || '';
+            if (contentType.includes('application/json')) {
+              const parsed = JSON.parse(buffer.toString('utf8'));
+              inputBuffer = Buffer.from(parsed.imageBase64, 'base64');
+              format = parsed.format || 'webp';
+              quality = parseInt(parsed.quality, 10) || 80;
+              width = parsed.width ? parseInt(parsed.width, 10) : null;
+              height = parsed.height ? parseInt(parsed.height, 10) : null;
+              maxSize = parsed.maxSize ? parseInt(parsed.maxSize, 10) : null;
+            } else {
+              inputBuffer = buffer;
+              const searchParams = new URL(req.url, `http://localhost:${port}`).searchParams;
+              if (searchParams.get('format')) format = searchParams.get('format');
+              if (searchParams.get('quality')) quality = parseInt(searchParams.get('quality'), 10) || 80;
+              if (searchParams.get('width')) width = parseInt(searchParams.get('width'), 10);
+              if (searchParams.get('height')) height = parseInt(searchParams.get('height'), 10);
+              if (searchParams.get('maxSize')) maxSize = parseInt(searchParams.get('maxSize'), 10);
+            }
+
+            let pipeline = sharp(inputBuffer);
+            if (width || height) {
+              pipeline = pipeline.resize(width || null, height || null, { fit: 'inside', withoutEnlargement: true });
+            } else if (maxSize) {
+              pipeline = pipeline.resize(maxSize, maxSize, { fit: 'inside', withoutEnlargement: true });
+            }
+
+            if (format === 'avif') {
+              pipeline = pipeline.avif({ quality });
+            } else if (format === 'jpeg' || format === 'jpg') {
+              pipeline = pipeline.jpeg({ quality, mozjpeg: true });
+            } else if (format === 'png') {
+              pipeline = pipeline.png({ quality });
+            } else {
+              pipeline = pipeline.webp({ quality });
+            }
+
+            const outputBuffer = await pipeline.toBuffer();
+            const metadata = await sharp(outputBuffer).metadata();
+
+            if (contentType.includes('application/json')) {
+              const originalBytes = inputBuffer.length;
+              const compressedBytes = outputBuffer.length;
+              const savedBytes = Math.max(0, originalBytes - compressedBytes);
+              const percentSaved = originalBytes > 0 ? Number(((savedBytes / originalBytes) * 100).toFixed(1)) : 0;
+
+              res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({
+                originalBytes,
+                compressedBytes,
+                savedBytes,
+                percentSaved,
+                format: metadata.format,
+                width: metadata.width,
+                height: metadata.height,
+                imageBase64: outputBuffer.toString('base64'),
+              }));
+            } else {
+              const outMime = MIME_TYPES[`.${metadata.format}`] || 'application/octet-stream';
+              res.writeHead(200, {
+                'Content-Type': outMime,
+                'Content-Length': outputBuffer.length,
+                'X-Original-Bytes': String(inputBuffer.length),
+                'X-Compressed-Bytes': String(outputBuffer.length),
+              });
+              res.end(outputBuffer);
+            }
+          } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+        });
+        return;
+      }
+
+      // Static file serving
       const urlPath = (pathname === '/' || pathname === '') ? '/index.html' : pathname;
       const filePath = path.join(WEB_DIR, urlPath);
 
