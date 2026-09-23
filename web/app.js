@@ -76,7 +76,8 @@ const FORMAT_CONFIGS = {
 };
 
 megaCards.forEach(card => {
-  card.addEventListener('click', () => {
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
     const format = card.dataset.format;
     formatSelect.value = format;
 

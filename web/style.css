@@ -145,6 +145,13 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 50;
+}
+
+.controls-card:focus-within,
+.controls-card:has(.mega-dropdown.open) {
+  z-index: 100;
 }
 
 .control-group {
@@ -163,6 +170,11 @@ body {
 .mega-dropdown {
   position: relative;
   width: 100%;
+  z-index: 60;
+}
+
+.mega-dropdown.open {
+  z-index: 150;
 }
 
 .mega-trigger {
@@ -267,17 +279,19 @@ body {
   padding: 10px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(20px);
-  z-index: 100;
+  z-index: 200;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
 }
 
 .mega-dropdown.open .mega-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 .mega-grid {
@@ -294,6 +308,9 @@ body {
   cursor: pointer;
   transition: all 0.18s ease;
   text-align: left;
+  position: relative;
+  z-index: 201;
+  pointer-events: auto;
 }
 
 .mega-card:hover {
