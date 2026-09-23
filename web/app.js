@@ -41,7 +41,22 @@ const modalSavingsText = document.getElementById('modalSavingsText');
 const modalDownloadBtn = document.getElementById('modalDownloadBtn');
 
 // State
+let loadedFiles = [];
 let processedImages = [];
+let currentProcessId = 0;
+let reprocessTimer = null;
+
+function triggerReprocess(immediate = false) {
+  if (loadedFiles.length === 0) return;
+  clearTimeout(reprocessTimer);
+  if (immediate) {
+    processAllImages();
+  } else {
+    reprocessTimer = setTimeout(() => {
+      processAllImages();
+    }, 180);
+  }
+}
 
 /**
  * Format bytes into human-readable text
@@ -96,6 +111,9 @@ megaCards.forEach(card => {
 
     // Close menu
     formatDropdown.classList.remove('open');
+
+    // Immediately re-process currently loaded images with the new format!
+    triggerReprocess(true);
   });
 });
 
@@ -121,6 +139,7 @@ dimPlusBtn.addEventListener('click', () => {
   const current = parseInt(maxSizeInput.value, 10);
   const next = isNaN(current) ? 800 : Math.min(8000, current + 100);
   updateDimensionUI(next);
+  triggerReprocess(true);
 });
 
 dimMinusBtn.addEventListener('click', () => {
@@ -130,17 +149,20 @@ dimMinusBtn.addEventListener('click', () => {
   } else {
     updateDimensionUI(Math.max(100, current - 100));
   }
+  triggerReprocess(true);
 });
 
 maxSizeInput.addEventListener('input', (e) => {
   const val = parseInt(e.target.value, 10);
   updateDimensionUI(isNaN(val) ? '' : val);
+  triggerReprocess(false);
 });
 
 dimPresetBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const dim = btn.dataset.dim;
     updateDimensionUI(dim ? parseInt(dim, 10) : '');
+    triggerReprocess(true);
   });
 });
 
@@ -153,6 +175,7 @@ qualityRange.addEventListener('input', (e) => {
   presetBtns.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.q === q);
   });
+  triggerReprocess(false);
 });
 
 presetBtns.forEach(btn => {
@@ -162,6 +185,7 @@ presetBtns.forEach(btn => {
     qualityVal.textContent = `${q}%`;
     presetBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    triggerReprocess(true);
   });
 });
 
@@ -208,9 +232,77 @@ function getMimeType(format) {
 }
 
 /**
- * Compress a single File via HTML5 Canvas
+ * Compress a single File via Local Sharp REST API
  */
-async function compressFile(file, options) {
+async function compressWithServer(file, options) {
+  const url = new URL('/api/compress', window.location.origin);
+  url.searchParams.set('format', options.format);
+  url.searchParams.set('quality', String(options.quality));
+  if (options.maxSize) {
+    url.searchParams.set('maxSize', String(options.maxSize));
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    body: file,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server returned status ${res.status}`);
+  }
+
+  const blob = await res.blob();
+  const originalBytes = parseInt(res.headers.get('x-original-bytes'), 10) || file.size;
+  const compressedBytes = parseInt(res.headers.get('x-compressed-bytes'), 10) || blob.size;
+  let width = parseInt(res.headers.get('x-width'), 10) || 0;
+  let height = parseInt(res.headers.get('x-height'), 10) || 0;
+  const outputFormat = res.headers.get('x-format') || options.format;
+
+  const savedBytes = Math.max(0, originalBytes - compressedBytes);
+  const percentSaved = originalBytes > 0 
+    ? Number(((savedBytes / originalBytes) * 100).toFixed(1))
+    : 0;
+
+  const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+  const ext = outputFormat === 'jpeg' ? 'jpg' : outputFormat;
+  const outputName = `${baseName}.${ext}`;
+  const objectUrl = URL.createObjectURL(blob);
+
+  if (!width || !height) {
+    try {
+      const img = new Image();
+      await new Promise((resolve) => {
+        img.onload = () => {
+          width = img.naturalWidth;
+          height = img.naturalHeight;
+          resolve();
+        };
+        img.onerror = resolve;
+        img.src = objectUrl;
+      });
+    } catch (_) {}
+  }
+
+  return {
+    rawFile: file,
+    name: file.name,
+    outputName,
+    originalBytes,
+    compressedBytes,
+    savedBytes,
+    percentSaved,
+    outputFormat,
+    blob,
+    objectUrl,
+    width,
+    height,
+  };
+}
+
+/**
+ * Compress a single File via HTML5 Canvas (Fallback)
+ */
+async function compressWithCanvas(file, options) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -242,14 +334,21 @@ async function compressFile(file, options) {
         const quality = options.quality / 100;
 
         canvas.toBlob((blob) => {
+          let finalFormat = options.format;
           if (!blob) {
-            // Fallback to webp or jpeg if browser doesn't support encoding AVIF directly
             canvas.toBlob((fallbackBlob) => {
               finish(fallbackBlob, 'webp');
             }, 'image/webp', quality);
             return;
           }
-          finish(blob, options.format);
+          if (options.format === 'avif' && blob.type === 'image/png') {
+            finalFormat = 'webp';
+            canvas.toBlob((fallbackBlob) => {
+              finish(fallbackBlob, 'webp');
+            }, 'image/webp', quality);
+            return;
+          }
+          finish(blob, finalFormat);
         }, mime, quality);
 
         function finish(blob, finalFormat) {
@@ -261,10 +360,12 @@ async function compressFile(file, options) {
             : 0;
 
           const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-          const outputName = `${baseName}.${finalFormat === 'jpeg' ? 'jpg' : finalFormat}`;
+          const ext = finalFormat === 'jpeg' ? 'jpg' : finalFormat;
+          const outputName = `${baseName}.${ext}`;
           const objectUrl = URL.createObjectURL(blob);
 
           resolve({
+            rawFile: file,
             name: file.name,
             outputName,
             originalBytes,
@@ -288,24 +389,68 @@ async function compressFile(file, options) {
 }
 
 /**
- * Process array of image files
+ * Unified image compression handler
  */
-async function handleFiles(files) {
+async function compressFile(file, options) {
+  try {
+    return await compressWithServer(file, options);
+  } catch (err) {
+    console.warn('Server compression API unreachable, falling back to Canvas:', err);
+    return await compressWithCanvas(file, options);
+  }
+}
+
+/**
+ * Process array of image files and retain raw references
+ */
+function handleFiles(files) {
+  for (const file of files) {
+    if (!loadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+      loadedFiles.push(file);
+    }
+  }
+  fileInput.value = '';
+  processAllImages();
+}
+
+/**
+ * Re-process all loaded files with current format, quality, and dimensions
+ */
+async function processAllImages() {
+  if (loadedFiles.length === 0) {
+    resultsSection.classList.add('hidden');
+    return;
+  }
+
+  const processId = ++currentProcessId;
   const options = {
-    format: formatSelect.value,
-    quality: parseInt(qualityRange.value, 10),
+    format: formatSelect.value || 'webp',
+    quality: parseInt(qualityRange.value, 10) || 80,
     maxSize: maxSizeInput.value ? parseInt(maxSizeInput.value, 10) : null,
   };
 
-  for (const file of files) {
+  resultsSection.classList.remove('hidden');
+  cardsGrid.style.opacity = '0.55';
+  cardsGrid.style.transition = 'opacity 0.15s ease';
+
+  const newResults = [];
+  for (const file of loadedFiles) {
+    if (processId !== currentProcessId) return;
     try {
       const result = await compressFile(file, options);
-      processedImages.push(result);
+      if (processId !== currentProcessId) return;
+      newResults.push(result);
     } catch (err) {
       console.error('Failed to compress:', file.name, err);
     }
   }
 
+  if (processId !== currentProcessId) return;
+
+  processedImages.forEach(img => URL.revokeObjectURL(img.objectUrl));
+  processedImages = newResults;
+
+  cardsGrid.style.opacity = '1';
   renderResults();
 }
 
@@ -435,6 +580,7 @@ downloadAllBtn.addEventListener('click', async () => {
 function clearAll() {
   processedImages.forEach(img => URL.revokeObjectURL(img.objectUrl));
   processedImages = [];
+  loadedFiles = [];
   renderResults();
   fileInput.value = '';
 }

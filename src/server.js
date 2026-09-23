@@ -19,6 +19,7 @@ const MIME_TYPES = {
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
   '.avif': 'image/avif',
+  '.heif': 'image/avif',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
 };
@@ -111,6 +112,8 @@ export function startWebServer(options = {}) {
             const outputBuffer = await pipeline.toBuffer();
             const metadata = await sharp(outputBuffer).metadata();
 
+            const actualFormat = (metadata.format === 'heif' || format === 'avif') ? 'avif' : (metadata.format || format);
+
             if (contentType.includes('application/json')) {
               const originalBytes = inputBuffer.length;
               const compressedBytes = outputBuffer.length;
@@ -123,18 +126,22 @@ export function startWebServer(options = {}) {
                 compressedBytes,
                 savedBytes,
                 percentSaved,
-                format: metadata.format,
+                format: actualFormat,
                 width: metadata.width,
                 height: metadata.height,
                 imageBase64: outputBuffer.toString('base64'),
               }));
             } else {
-              const outMime = MIME_TYPES[`.${metadata.format}`] || 'application/octet-stream';
+              const outMime = actualFormat === 'avif' ? 'image/avif' : (MIME_TYPES[`.${actualFormat}`] || MIME_TYPES[`.${metadata.format}`] || 'application/octet-stream');
               res.writeHead(200, {
                 'Content-Type': outMime,
                 'Content-Length': outputBuffer.length,
                 'X-Original-Bytes': String(inputBuffer.length),
                 'X-Compressed-Bytes': String(outputBuffer.length),
+                'X-Width': String(metadata.width || 0),
+                'X-Height': String(metadata.height || 0),
+                'X-Format': String(actualFormat),
+                'Access-Control-Expose-Headers': 'X-Original-Bytes, X-Compressed-Bytes, X-Width, X-Height, X-Format',
               });
               res.end(outputBuffer);
             }

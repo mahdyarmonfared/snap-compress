@@ -58,6 +58,19 @@ test('startWebServer serves web UI on specified port', async () => {
     assert.ok(compressData.compressedBytes > 0);
     assert.ok(compressData.imageBase64.length > 0);
 
+    // Check POST /api/compress (Binary mode)
+    const binaryCompressRes = await fetch(`http://localhost:${testPort}/api/compress?format=avif&quality=60&maxSize=100`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'image/png' },
+      body: testPng,
+    });
+    assert.equal(binaryCompressRes.status, 200);
+    assert.equal(binaryCompressRes.headers.get('content-type'), 'image/avif');
+    assert.equal(binaryCompressRes.headers.get('x-format'), 'avif');
+    assert.ok(parseInt(binaryCompressRes.headers.get('x-width'), 10) <= 100);
+    const avifBuffer = await binaryCompressRes.arrayBuffer();
+    assert.ok(avifBuffer.byteLength > 0);
+
     // Check 404
     const notFoundRes = await fetch(`http://localhost:${testPort}/non-existent-file.xyz`);
     assert.equal(notFoundRes.status, 404);
